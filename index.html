@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Speed Flow | Expedição e Loja</title>
+    
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2769/2769339.png" type="image/png">
+
+    <style>
+        /* Tira todas as bordas e trava a tela */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Impede a barra de rolagem dupla */
+            background-color: #2d3436; /* Mesma cor do seu cabeçalho */
+            font-family: Arial, sans-serif;
+        }
+
+        /* O Pulo do Gato: Esta caixa puxa o sistema 28 pixels para cima, engolindo a tarja do Google */
+        .app-container {
+            position: absolute;
+            top: -28px; 
+            left: 0;
+            width: 100%;
+            height: calc(100% + 28px); 
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Tela de carregamento enquanto o Google pensa */
+        #loading {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #2d3436;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            transition: 0.5s;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #0984e3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <h2>Iniciando Sistema...</h2>
+    </div>
+
+    <div class="app-container">
+        <iframe 
+            src="https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec" 
+            onload="document.getElementById('loading').style.opacity='0'; setTimeout(()=>document.getElementById('loading').style.display='none', 500);">
+        </iframe>
+    </div>
+
+</body>
+</html>
