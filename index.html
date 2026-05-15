@@ -3,54 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Speed Flow | Conectando...</title>
+    <title>Speed Flow | Expedição e Loja</title>
     
-    <!-- Ícone da aba do navegador -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2769/2769339.png" type="image/png">
 
     <style>
-        /* Tela de carregamento elegante com a identidade do seu sistema */
+        /* Tira todas as bordas, trava a tela e define a fonte */
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
+            width: 100%;
+            overflow: hidden; 
             background-color: #2d3436; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* O Pulo do Gato: Puxa o sistema 28 pixels para cima, engolindo a tarja do Google */
+        .app-container {
+            position: absolute;
+            top: -28px; 
+            left: 0;
+            width: 100%;
+            height: calc(100% + 28px); 
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Tela de carregamento modernizada */
+        #loading {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #2d3436;
             color: white;
-            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            z-index: 9999;
+            /* Transição suave de opacidade */
+            transition: opacity 0.6s ease-out, visibility 0.6s;
         }
+        
         .spinner {
-            width: 50px; 
-            height: 50px;
-            border: 5px solid rgba(255,255,255,0.2);
-            border-top: 5px solid #0984e3;
+            width: 55px; height: 55px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-left-color: #0984e3;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        h2 { margin: 0; font-size: 20px; }
-        p { margin-top: 10px; font-size: 14px; color: #b2bec3; }
+        
+        .loading-title { font-size: 18px; font-weight: 900; letter-spacing: 1.5px; }
+        .loading-sub { font-size: 13px; color: #b2bec3; margin-top: 8px; }
     </style>
-
-    <script>
-        // O Redirecionamento Supremo
-        // Usamos 'replace' para que o operador não fique preso nesta tela se clicar em "Voltar" no telemóvel
-        window.onload = function() {
-            setTimeout(function() {
-                window.location.replace("https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec");
-            }, 1200); // Aguarda 1.2 segundos para o efeito visual e transfere
-        };
-    </script>
 </head>
 <body>
 
-    <div class="spinner"></div>
-    <h2>Acedendo ao Speed Flow...</h2>
-    <p>A estabelecer ambiente seguro para a câmera</p>
+    <!-- Novo visual de loading -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <div class="loading-title">🚀 SPEED FLOW</div>
+        <div class="loading-sub">Sincronizando banco de dados...</div>
+    </div>
+
+    <div class="app-container">
+        <!-- Iframe com permissões máximas para Android/Chrome -->
+        <iframe 
+            src="https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec" 
+            allow="camera *; microphone *"
+            onload="fadeOutLoading()">
+        </iframe>
+    </div>
+
+    <script>
+        // Função para remover o loading apenas quando o Google App Script estiver pronto
+        function fadeOutLoading() {
+            const loader = document.getElementById('loading');
+            // Dá um atraso de 800ms para garantir que a tela branca inicial do Google já passou
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => { 
+                    loader.style.visibility = 'hidden'; 
+                }, 600); // Tempo igual ao da transição no CSS
+            }, 800);
+        }
+    </script>
 
 </body>
 </html>
