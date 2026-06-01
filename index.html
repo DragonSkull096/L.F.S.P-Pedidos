@@ -159,13 +159,17 @@
         }
 
         function fecharCamera() {
-            // Devolve a tela cheia para o Google
-            document.getElementById('cam-container').style.display = 'none';
+            document.getElementById('cam-overlay').style.display = 'none';
             document.getElementById('app-wrapper').style.top = '-28px';
             document.getElementById('app-wrapper').style.height = 'calc(100% + 28px)';
 
             if (scanner) {
                 scanner.stop().then(() => { scanner.clear(); scanner = null; }).catch(e => { scanner = null; });
+            }
+
+            // AVISA O GOOGLE QUE A CÂMERA FECHOU PARA ELE DEVOLVER O TECLADO
+            if (janelaDoGoogle) {
+                janelaDoGoogle.postMessage({ action: 'CAMERA_CLOSED' }, '*');
             }
         }
 
