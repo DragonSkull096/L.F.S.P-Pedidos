@@ -1,0 +1,10 @@
+{
+  "name": "Speed Flow Expedição",
+  "short_name": "Speed Flow",
+  "description": "Sistema de expedição e logística.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2d3436",
+  "theme_color": "#2d3436",
+  "orientation": "portrait"
+}
