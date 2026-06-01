@@ -1,18 +1,11 @@
 {
   "name": "Speed Flow Expedição",
   "short_name": "Speed Flow",
-  "description": "Sistema de expedição e logística.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#2d3436",
   "theme_color": "#2d3436",
-  "orientation": "portrait",
   "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/2769/2769339.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2769/2769339.png",
       "sizes": "512x512",
