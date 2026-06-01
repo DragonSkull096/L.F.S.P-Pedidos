@@ -2,98 +2,107 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Speed Flow | Expedição e Loja</title>
     
-    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2769/2769339.png" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2d3436">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Speed Flow">
+    
+    <link rel="manifest" href="manifest.json">
 
+    <title>Speed Flow | Expedição</title>
+    
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <style>
-        /* Tira todas as bordas, trava a tela e define a fonte */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden; 
-            background-color: #2d3436; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+        /* Tira bordas, trava tela e esconde a tarja cinza do Google (-28px) */
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #2d3436; font-family: sans-serif; }
+        .app-container { position: absolute; top: -28px; left: 0; width: 100%; height: calc(100% + 28px); }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        /* O Pulo do Gato: Puxa o sistema 28 pixels para cima, engolindo a tarja do Google */
-        .app-container {
-            position: absolute;
-            top: -28px; 
-            left: 0;
-            width: 100%;
-            height: calc(100% + 28px); 
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Tela de carregamento modernizada */
-        #loading {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #2d3436;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 9999;
-            /* Transição suave de opacidade */
-            transition: opacity 0.6s ease-out, visibility 0.6s;
-        }
-        
-        .spinner {
-            width: 55px; height: 55px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: #0984e3;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 25px;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        
-        .loading-title { font-size: 18px; font-weight: 900; letter-spacing: 1.5px; }
-        .loading-sub { font-size: 13px; color: #b2bec3; margin-top: 8px; }
+        /* Modal de Câmera do Sistema (Cobre a tela toda) */
+        #cam-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        #reader { width: 100%; max-width: 400px; border: 3px solid #00b894; border-radius: 8px; overflow: hidden; background: #000; }
+        .btn-close { margin-top: 20px; padding: 15px 30px; background: #d63031; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-    <!-- Novo visual de loading -->
-    <div id="loading">
-        <div class="spinner"></div>
-        <div class="loading-title">🚀 SPEED FLOW</div>
-        <div class="loading-sub">Sincronizando banco de dados...</div>
-    </div>
-
     <div class="app-container">
-        <!-- Iframe com permissões estritas em conformidade com as policies do GitHub Pages -->
         <iframe 
+            id="gas-frame" 
             src="https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec" 
-            allow="camera; microphone; display-capture; fullscreen"
-            onload="fadeOutLoading()">
+            allow="camera *; microphone *; display-capture *; fullscreen *"
+            allowfullscreen="true">
         </iframe>
     </div>
 
+    <div id="cam-overlay">
+        <h3 style="color: #00b894; margin-bottom: 20px;">Escaneamento Ao Vivo 📸</h3>
+        <div id="reader"></div>
+        <button class="btn-close" onclick="fecharCamera()">PARAR CÂMERA</button>
+    </div>
+
     <script>
-        // Função para remover o loading apenas quando o Google App Script estiver pronto
-        function fadeOutLoading() {
-            const loader = document.getElementById('loading');
-            // Dá um atraso de 800ms para garantir que a tela branca inicial do Google já passou
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => { 
-                    loader.style.visibility = 'hidden'; 
-                }, 600); // Tempo igual ao da transição no CSS
-            }, 800);
+        let scanner = null;
+        let contextoAtual = "";
+        let janelaDoGoogle = null;
+
+        // 1. ESCUTADOR: Ouve quando o Google pede para ligar a câmera
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.action === 'OPEN_CAMERA') {
+                contextoAtual = e.data.contexto;
+                janelaDoGoogle = e.source; // Salva quem pediu a câmera
+                abrirCamera();
+            }
+        });
+
+        function abrirCamera() {
+            document.getElementById('cam-overlay').style.display = 'flex';
+            scanner = new Html5Qrcode("reader");
+            
+            // Ligando com a configuração agressiva que funciona!
+            scanner.start(
+                { facingMode: "environment" },
+                { fps: 20, qrbox: { width: 220, height: 220 }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+                (decodedText) => {
+                    // SUCESSO! Bipou!
+                    tocarBip();
+                    fecharCamera();
+                    
+                    // Devolve o código lido exatamente para o frame interno do Google
+                    if (janelaDoGoogle) {
+                        janelaDoGoogle.postMessage(
+                            { action: 'SCAN_SUCCESS', code: decodedText, contexto: contextoAtual }, 
+                            '*'
+                        );
+                    }
+                },
+                (error) => { /* Ignora frames vazios */ }
+            ).catch(err => {
+                alert("Erro ao ligar a lente: " + err);
+                fecharCamera();
+            });
+        }
+
+        function fecharCamera() {
+            document.getElementById('cam-overlay').style.display = 'none';
+            if (scanner) {
+                scanner.stop().then(() => { scanner.clear(); scanner = null; }).catch(e => { scanner = null; });
+            }
+        }
+
+        function tocarBip() {
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                osc.connect(ctx.destination);
+                osc.frequency.value = 1500;
+                osc.start(); osc.stop(ctx.currentTime + 0.1);
+            } catch(e){}
         }
     </script>
-
 </body>
 </html>
