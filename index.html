@@ -26,7 +26,12 @@
         }
 
         /* O Pulo do Gato: Puxa o sistema 28 pixels para cima, engolindo a tarja do Google */
-        .app-container { position: absolute; top: -28px; left: 0; width: 100%; height: calc(100% + 28px); }
+        /* ADICIONADO TRANSITION PARA A TELA DIVIDIR SUAVEMENTE */
+        .app-container { 
+            position: absolute; top: -28px; left: 0; width: 100%; 
+            height: calc(100% + 28px); 
+            transition: top 0.3s, height 0.3s; 
+        }
         iframe { width: 100%; height: 100%; border: none; }
 
         /* Tela de carregamento modernizada */
@@ -48,15 +53,23 @@
         .loading-sub { font-size: 13px; color: #b2bec3; margin-top: 8px; }
 
         /* ========================================== */
-        /* Modal de Câmera do Sistema Pai             */
+        /* NOVO MODAL DE CÂMERA (TELA DIVIDIDA)       */
         /* ========================================== */
-        #cam-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); z-index: 99999; flex-direction: column; 
-            align-items: center; justify-content: center; backdrop-filter: blur(5px); 
+        #cam-container { 
+            display: none; position: absolute; top: 0; left: 0; 
+            width: 100%; height: 35vh; background: #000; z-index: 99999; 
+            border-bottom: 4px solid #8e44ad; box-sizing: border-box; 
         }
-        #reader { width: 100%; max-width: 400px; border: 3px solid #00b894; border-radius: 8px; overflow: hidden; background: #000; }
-        .btn-close { margin-top: 20px; padding: 15px 30px; background: #d63031; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #reader { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        #reader video { object-fit: cover !important; height: 100% !important; } /* Tira as bordas pretas do vídeo */
+        
+        .btn-fechar { 
+            position: absolute; top: 10px; right: 10px; 
+            background: rgba(214, 48, 49, 0.8); color: white; border: 2px solid #fff; 
+            border-radius: 50%; width: 40px; height: 40px; font-weight: bold; 
+            font-size: 16px; cursor: pointer; z-index: 10; display: flex; 
+            align-items: center; justify-content: center; 
+        }
     </style>
 </head>
 <body>
@@ -67,7 +80,7 @@
         <div class="loading-sub">Sincronizando banco de dados...</div>
     </div>
 
-    <div class="app-container">
+    <div id="app-wrapper" class="app-container">
         <iframe 
             id="gas-frame" 
             src="https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec" 
@@ -76,14 +89,13 @@
         </iframe>
     </div>
 
-    <div id="cam-overlay">
-        <h3 style="color: #00b894; margin-bottom: 20px;">Escaneamento Ao Vivo 📸</h3>
+    <div id="cam-container">
+        <button class="btn-fechar" onclick="fecharCamera()">X</button>
         <div id="reader"></div>
-        <button class="btn-close" onclick="fecharCamera()">PARAR CÂMERA</button>
     </div>
 
     <script>
-        // Função para remover o loading apenas quando o Google App Script estiver pronto
+        // Remove o loading apenas quando o Google App Script estiver pronto
         function fadeOutLoading() {
             const loader = document.getElementById('loading');
             setTimeout(() => {
@@ -95,40 +107,49 @@
         }
 
         // ==========================================
-        // MOTOR DA CÂMERA
+        // MOTOR DA CÂMERA (BIP CONTÍNUO)
         // ==========================================
         let scanner = null;
         let contextoAtual = "";
         let janelaDoGoogle = null;
+        let isProcessing = false; // Trava contra bipes duplicados
 
-        // Escuta quando o Google pede para ligar a câmera
         window.addEventListener('message', function(e) {
             if (e.data && e.data.action === 'OPEN_CAMERA') {
                 contextoAtual = e.data.contexto;
-                janelaDoGoogle = e.source; // Salva o remetente (O iframe do Google)
+                janelaDoGoogle = e.source; 
                 abrirCamera();
             }
         });
 
         function abrirCamera() {
-            document.getElementById('cam-overlay').style.display = 'flex';
+            // A MÁGICA DA TELA DIVIDIDA:
+            // Exibe a câmera e empurra o Iframe do Google para baixo
+            document.getElementById('cam-container').style.display = 'block';
+            document.getElementById('app-wrapper').style.top = 'calc(35vh - 28px)';
+            document.getElementById('app-wrapper').style.height = 'calc(65vh + 28px)';
+
             scanner = new Html5Qrcode("reader");
-            
-            // Ligando com a configuração agressiva (experimentalFeatures = true)
             scanner.start(
                 { facingMode: "environment" },
-                { fps: 20, qrbox: { width: 220, height: 220 }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+                { fps: 15, qrbox: { width: 250, height: 150 }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
                 (decodedText) => {
+                    // Trava de segurança: impede metralhar bipes iguais na mesma fração de segundo
+                    if (isProcessing) return;
+                    isProcessing = true;
+
                     tocarBip();
-                    fecharCamera();
                     
-                    // Devolve o código lido exatamente para o Google
+                    // Envia pro Google, mas NÃO FECHA a câmera!
                     if (janelaDoGoogle) {
                         janelaDoGoogle.postMessage(
                             { action: 'SCAN_SUCCESS', code: decodedText, contexto: contextoAtual }, 
                             '*'
                         );
                     }
+
+                    // Aguarda 1.5s antes de aceitar o próximo bipe físico
+                    setTimeout(() => { isProcessing = false; }, 1500);
                 },
                 (error) => { /* Ignora frames vazios */ }
             ).catch(err => {
@@ -138,7 +159,11 @@
         }
 
         function fecharCamera() {
-            document.getElementById('cam-overlay').style.display = 'none';
+            // Devolve a tela cheia para o Google
+            document.getElementById('cam-container').style.display = 'none';
+            document.getElementById('app-wrapper').style.top = '-28px';
+            document.getElementById('app-wrapper').style.height = 'calc(100% + 28px)';
+
             if (scanner) {
                 scanner.stop().then(() => { scanner.clear(); scanner = null; }).catch(e => { scanner = null; });
             }
@@ -149,7 +174,7 @@
                 let ctx = new (window.AudioContext || window.webkitAudioContext)();
                 let osc = ctx.createOscillator();
                 osc.connect(ctx.destination);
-                osc.frequency.value = 1500;
+                osc.frequency.value = 1800; // Tom ligeiramente mais agudo, padrão industrial
                 osc.start(); osc.stop(ctx.currentTime + 0.1);
             } catch(e){}
         }
