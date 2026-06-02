@@ -28,7 +28,7 @@
         .loading-title { font-size: 18px; font-weight: 900; letter-spacing: 1.5px; }
         .loading-sub { font-size: 13px; color: #b2bec3; margin-top: 8px; }
 
-        #cam-container { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 35vh; background: #000; z-index: 99999; border-bottom: 4px solid #8e44ad; box-sizing: border-box; }
+        #cam-container { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 25vh; background: #000; z-index: 99999; border-bottom: 4px solid #8e44ad; box-sizing: border-box; }
         #reader { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
         #reader video { object-fit: cover !important; height: 100% !important; }
         
@@ -78,8 +78,8 @@
 
         function abrirCamera() {
             document.getElementById('cam-container').style.display = 'block';
-            document.getElementById('app-wrapper').style.top = 'calc(35vh - 28px)';
-            document.getElementById('app-wrapper').style.height = 'calc(65vh + 28px)';
+            document.getElementById('app-wrapper').style.top = 'calc(25vh - 28px)';
+            document.getElementById('app-wrapper').style.height = 'calc(75vh + 28px)';
 
             scanner = new Html5Qrcode("reader");
             scanner.start(
