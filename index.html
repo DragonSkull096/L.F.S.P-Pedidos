@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,58 +17,22 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
-        /* Tira todas as bordas, trava a tela e define a fonte */
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            overflow: hidden; background-color: #2d3436;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #2d3436; font-family: 'Segoe UI', Roboto, sans-serif; }
 
-        /* O Pulo do Gato: Puxa o sistema 28 pixels para cima, engolindo a tarja do Google */
-        /* ADICIONADO TRANSITION PARA A TELA DIVIDIR SUAVEMENTE */
-        .app-container { 
-            position: absolute; top: -28px; left: 0; width: 100%; 
-            height: calc(100% + 28px); 
-            transition: top 0.3s, height 0.3s; 
-        }
+        .app-container { position: absolute; top: -28px; left: 0; width: 100%; height: calc(100% + 28px); transition: top 0.3s ease, height 0.3s ease; }
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* Tela de carregamento modernizada */
-        #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #2d3436; color: white; display: flex;
-            justify-content: center; align-items: center; flex-direction: column;
-            z-index: 9999; transition: opacity 0.6s ease-out, visibility 0.6s;
-        }
-        
-        .spinner {
-            width: 55px; height: 55px; border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: #0984e3; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 25px;
-        }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2d3436; color: white; display: flex; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; transition: opacity 0.6s ease-out, visibility 0.6s; }
+        .spinner { width: 55px; height: 55px; border: 4px solid rgba(255,255,255,0.1); border-left-color: #0984e3; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        
         .loading-title { font-size: 18px; font-weight: 900; letter-spacing: 1.5px; }
         .loading-sub { font-size: 13px; color: #b2bec3; margin-top: 8px; }
 
-        /* ========================================== */
-        /* NOVO MODAL DE CÂMERA (TELA DIVIDIDA)       */
-        /* ========================================== */
-        #cam-container { 
-            display: none; position: absolute; top: 0; left: 0; 
-            width: 100%; height: 35vh; background: #000; z-index: 99999; 
-            border-bottom: 4px solid #8e44ad; box-sizing: border-box; 
-        }
+        #cam-container { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 35vh; background: #000; z-index: 99999; border-bottom: 4px solid #8e44ad; box-sizing: border-box; }
         #reader { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        #reader video { object-fit: cover !important; height: 100% !important; } /* Tira as bordas pretas do vídeo */
+        #reader video { object-fit: cover !important; height: 100% !important; }
         
-        .btn-fechar { 
-            position: absolute; top: 10px; right: 10px; 
-            background: rgba(214, 48, 49, 0.8); color: white; border: 2px solid #fff; 
-            border-radius: 50%; width: 40px; height: 40px; font-weight: bold; 
-            font-size: 16px; cursor: pointer; z-index: 10; display: flex; 
-            align-items: center; justify-content: center; 
-        }
+        .btn-fechar { position: absolute; top: 10px; right: 10px; background: rgba(214, 48, 49, 0.9); color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -83,7 +46,7 @@
     <div id="app-wrapper" class="app-container">
         <iframe 
             id="gas-frame" 
-            src="https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec" 
+            src=https://script.google.com/macros/s/AKfycbxooE6g-Zav8DmwBYEhmAVyxX0F2C8vJNLMmLgO3a5xK5N_vtZDlNIapllnvx3jLqIx/exec 
             allow="camera *; microphone *; display-capture *; fullscreen *"
             onload="fadeOutLoading()">
         </iframe>
@@ -95,24 +58,15 @@
     </div>
 
     <script>
-        // Remove o loading apenas quando o Google App Script estiver pronto
         function fadeOutLoading() {
             const loader = document.getElementById('loading');
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => { 
-                    loader.style.visibility = 'hidden'; 
-                }, 600);
-            }, 800);
+            setTimeout(() => { loader.style.opacity = '0'; setTimeout(() => { loader.style.visibility = 'hidden'; }, 600); }, 800);
         }
 
-        // ==========================================
-        // MOTOR DA CÂMERA (BIP CONTÍNUO)
-        // ==========================================
         let scanner = null;
         let contextoAtual = "";
         let janelaDoGoogle = null;
-        let isProcessing = false; // Trava contra bipes duplicados
+        let isProcessing = false;
 
         window.addEventListener('message', function(e) {
             if (e.data && e.data.action === 'OPEN_CAMERA') {
@@ -123,8 +77,6 @@
         });
 
         function abrirCamera() {
-            // A MÁGICA DA TELA DIVIDIDA:
-            // Exibe a câmera e empurra o Iframe do Google para baixo
             document.getElementById('cam-container').style.display = 'block';
             document.getElementById('app-wrapper').style.top = 'calc(35vh - 28px)';
             document.getElementById('app-wrapper').style.height = 'calc(65vh + 28px)';
@@ -134,24 +86,16 @@
                 { facingMode: "environment" },
                 { fps: 15, qrbox: { width: 250, height: 150 }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
                 (decodedText) => {
-                    // Trava de segurança: impede metralhar bipes iguais na mesma fração de segundo
                     if (isProcessing) return;
                     isProcessing = true;
-
                     tocarBip();
                     
-                    // Envia pro Google, mas NÃO FECHA a câmera!
                     if (janelaDoGoogle) {
-                        janelaDoGoogle.postMessage(
-                            { action: 'SCAN_SUCCESS', code: decodedText, contexto: contextoAtual }, 
-                            '*'
-                        );
+                        janelaDoGoogle.postMessage({ action: 'SCAN_SUCCESS', code: decodedText, contexto: contextoAtual }, '*');
                     }
-
-                    // Aguarda 1.5s antes de aceitar o próximo bipe físico
                     setTimeout(() => { isProcessing = false; }, 1500);
                 },
-                (error) => { /* Ignora frames vazios */ }
+                (error) => {}
             ).catch(err => {
                 alert("Erro ao ligar a lente: " + err);
                 fecharCamera();
@@ -159,30 +103,32 @@
         }
 
         function fecharCamera() {
-            document.getElementById('cam-overlay').style.display = 'none';
-            document.getElementById('app-wrapper').style.top = '-28px';
-            document.getElementById('app-wrapper').style.height = 'calc(100% + 28px)';
-
-            if (scanner) {
-                scanner.stop().then(() => { scanner.clear(); scanner = null; }).catch(e => { scanner = null; });
+            // 1. Esconde a interface IMEDIATAMENTE (sem esperar o hardware)
+            let camDiv = document.getElementById('cam-container');
+            let appWrapper = document.getElementById('app-wrapper');
+            
+            if (camDiv) camDiv.style.display = 'none';
+            if (appWrapper) {
+                appWrapper.style.top = '-28px';
+                appWrapper.style.height = 'calc(100% + 28px)';
             }
 
-            // AVISA O GOOGLE QUE A CÂMERA FECHOU PARA ELE DEVOLVER O TECLADO
+            // 2. AVISA O GOOGLE IMEDIATAMENTE PARA DEVOLVER O TECLADO
             if (janelaDoGoogle) {
                 janelaDoGoogle.postMessage({ action: 'CAMERA_CLOSED' }, '*');
+            }
+
+            // 3. Desliga o leitor em segundo plano com Try/Catch (Evita travar)
+            if (scanner) {
+                try {
+                    scanner.stop().then(() => { scanner.clear(); scanner = null; }).catch(e => { scanner = null; });
+                } catch(e) { scanner = null; }
             }
         }
 
         function tocarBip() {
-            try {
-                let ctx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = ctx.createOscillator();
-                osc.connect(ctx.destination);
-                osc.frequency.value = 1800; // Tom ligeiramente mais agudo, padrão industrial
-                osc.start(); osc.stop(ctx.currentTime + 0.1);
-            } catch(e){}
+            try { let ctx = new (window.AudioContext || window.webkitAudioContext)(); let osc = ctx.createOscillator(); osc.connect(ctx.destination); osc.frequency.value = 1800; osc.start(); osc.stop(ctx.currentTime + 0.1); } catch(e){}
         }
     </script>
-
 </body>
 </html>
