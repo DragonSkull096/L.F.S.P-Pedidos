@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="mobile-web-app-capable" content="yes">
@@ -32,6 +36,7 @@
             overflow: hidden; 
             background-color: #2d3436; 
             font-family: 'Segoe UI', Roboto, sans-serif;
+            /* Proteção para Notch/Câmera de Celulares Modernos */
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
@@ -54,7 +59,7 @@
         
         .btn-fechar { position: absolute; top: 10px; right: 10px; background: rgba(214, 48, 49, 0.9); color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
         
-        /* 🚀 2. MIRA A LASER PROFISSIONAL PARA A CÂMERA */
+        /* 🚀 MIRA A LASER PROFISSIONAL PARA A CÂMERA */
         .scan-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 250px; height: 150px; border: 2px solid rgba(0, 184, 148, 0.8);
@@ -134,7 +139,6 @@
                 },
                 (error) => {}
             ).then(() => {
-                // Só liga o laser holográfico quando a câmera for conectada com sucesso
                 document.getElementById('scan-target').style.display = 'block';
             }).catch(err => {
                 alert("Erro ao ligar a lente: " + err);
@@ -148,7 +152,7 @@
             let target = document.getElementById('scan-target');
             
             if (camDiv) camDiv.style.display = 'none';
-            if (target) target.style.display = 'none'; // Desliga a mira
+            if (target) target.style.display = 'none';
             
             if (appWrapper) {
                 appWrapper.style.top = '-28px';
@@ -170,11 +174,13 @@
             try { let ctx = new (window.AudioContext || window.webkitAudioContext)(); let osc = ctx.createOscillator(); osc.connect(ctx.destination); osc.frequency.value = 1800; osc.start(); osc.stop(ctx.currentTime + 0.1); } catch(e){}
         }
 
-        // 🚀 3. PWA NATIVO: Registra o Service Worker para blindar a instalação
+        // PWA NATIVO: Registra o Service Worker e Força Atualização
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(error => {
-                    console.log('SW falhou (Normal se não existir ainda):', error);
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    reg.update(); // 🌟 Tenta atualizar o Service Worker toda vez que a página abre
+                }).catch(error => {
+                    console.log('SW falhou:', error);
                 });
             });
         }
