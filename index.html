@@ -12,9 +12,10 @@
     <meta name="apple-mobile-web-app-title" content="Speed Flow">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Volta o link original do manifesto -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://unpkg.com">
     
+    <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2769/2769339.png">
 
     <title>Speed Flow | Expedição e Loja</title>
@@ -23,16 +24,14 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
-        /* A casca externa deve ser rígida para não vazar rolagem para fora do iframe */
         body, html { 
             margin: 0; 
             padding: 0; 
-            height: 100vh; /* Uso de vh garante que pegue 100% da tela visível do hardware */
+            height: 100vh; 
             width: 100vw; 
             overflow: hidden; 
-            background-color: #2d3436; /* Fundo que combina com seu sistema */
+            background-color: #2d3436; 
             font-family: 'Segoe UI', Roboto, sans-serif;
-            /* Permite ao sistema esticar por baixo do Notch (câmera) do celular */
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
@@ -49,11 +48,25 @@
         .loading-title { font-size: 18px; font-weight: 900; letter-spacing: 1.5px; }
         .loading-sub { font-size: 13px; color: #b2bec3; margin-top: 8px; }
 
-        #cam-container { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 25vh; background: #000; z-index: 99999; border-bottom: 4px solid #8e44ad; box-sizing: border-box; }
-        #reader { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        #reader video { object-fit: cover !important; height: 100% !important; }
+        #cam-container { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 25vh; background: #000; z-index: 99999; border-bottom: 4px solid #8e44ad; box-sizing: border-box; overflow: hidden; }
+        #reader { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+        #reader video { object-fit: cover !important; height: 100% !important; width: 100% !important; }
         
-        .btn-fechar { position: absolute; top: 10px; right: 10px; background: rgba(214, 48, 49, 0.9); color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .btn-fechar { position: absolute; top: 10px; right: 10px; background: rgba(214, 48, 49, 0.9); color: white; border: 2px solid #fff; border-radius: 50%; width: 40px; height: 40px; font-weight: bold; font-size: 16px; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        
+        /* 🚀 2. MIRA A LASER PROFISSIONAL PARA A CÂMERA */
+        .scan-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 250px; height: 150px; border: 2px solid rgba(0, 184, 148, 0.8);
+            border-radius: 12px; pointer-events: none; z-index: 10;
+            box-shadow: 0 0 0 4000px rgba(0,0,0,0.5); /* Escurece o fundo fora da mira */
+        }
+        .scan-laser {
+            width: 100%; height: 2px; background: #d63031; position: absolute; top: 0;
+            box-shadow: 0 0 10px #d63031, 0 0 20px #d63031;
+            animation: scanAnim 2s infinite ease-in-out;
+        }
+        @keyframes scanAnim { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
     </style>
 </head>
 <body>
@@ -76,6 +89,9 @@
     <div id="cam-container">
         <button class="btn-fechar" onclick="fecharCamera()">X</button>
         <div id="reader"></div>
+        <div class="scan-overlay" id="scan-target" style="display:none;">
+            <div class="scan-laser"></div>
+        </div>
     </div>
 
     <script>
@@ -117,29 +133,32 @@
                     setTimeout(() => { isProcessing = false; }, 1500);
                 },
                 (error) => {}
-            ).catch(err => {
+            ).then(() => {
+                // Só liga o laser holográfico quando a câmera for conectada com sucesso
+                document.getElementById('scan-target').style.display = 'block';
+            }).catch(err => {
                 alert("Erro ao ligar a lente: " + err);
                 fecharCamera();
             });
         }
 
         function fecharCamera() {
-            // 1. Esconde a interface IMEDIATAMENTE (sem esperar o hardware)
             let camDiv = document.getElementById('cam-container');
             let appWrapper = document.getElementById('app-wrapper');
+            let target = document.getElementById('scan-target');
             
             if (camDiv) camDiv.style.display = 'none';
+            if (target) target.style.display = 'none'; // Desliga a mira
+            
             if (appWrapper) {
                 appWrapper.style.top = '-28px';
                 appWrapper.style.height = 'calc(100% + 28px)';
             }
 
-            // 2. AVISA O GOOGLE IMEDIATAMENTE PARA DEVOLVER O TECLADO
             if (janelaDoGoogle) {
                 janelaDoGoogle.postMessage({ action: 'CAMERA_CLOSED' }, '*');
             }
 
-            // 3. Desliga o leitor em segundo plano com Try/Catch (Evita travar)
             if (scanner) {
                 try {
                     scanner.stop().then(() => { scanner.clear(); scanner = null; }).catch(e => { scanner = null; });
@@ -149,6 +168,15 @@
 
         function tocarBip() {
             try { let ctx = new (window.AudioContext || window.webkitAudioContext)(); let osc = ctx.createOscillator(); osc.connect(ctx.destination); osc.frequency.value = 1800; osc.start(); osc.stop(ctx.currentTime + 0.1); } catch(e){}
+        }
+
+        // 🚀 3. PWA NATIVO: Registra o Service Worker para blindar a instalação
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(error => {
+                    console.log('SW falhou (Normal se não existir ainda):', error);
+                });
+            });
         }
     </script>
 </body>
