@@ -1,15 +1,17 @@
 {
-  "name": "Speed Flow Expedição",
-  "short_name": "Speed Flow",
-  "start_url": "./index.html",
-  "display": "standalone",
+  "name": "Speed Flow",
+  "short_name": "SpeedFlow",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
   "background_color": "#2d3436",
   "theme_color": "#2d3436",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2769/2769339.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
