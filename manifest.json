@@ -3,7 +3,7 @@
   "short_name": "SpeedFlow",
   "start_url": "./",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#2d3436",
   "theme_color": "#2d3436",
   "icons": [
